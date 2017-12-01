@@ -69,6 +69,7 @@
 #include "ofxTLCameraTrack.h"
 #include "ofxTLColors.h"
 #include "ofxTLLFO.h"
+#include "ofxTLNotes.h"
 
 #ifdef TIMELINE_VIDEO_INCLUDED
 #include "ofxTLVideoTrack.h"
@@ -373,6 +374,13 @@ class ofxTimeline : ofThread {
 	bool isSwitchOn(string name, float atTime);
 	bool isSwitchOn(string name, int atFrame);
 	
+    ofxTLNotes* addNotes(string name);
+    ofxTLNotes* addNotes(string name, string xmlFileName);
+    int getNote(string name);
+    int getNote(string name, float atTime);
+    int getNote(string name, int atFrame);
+    
+    
     ofxTLBangs* addBangs(string name);
 	ofxTLBangs* addBangs(string name, string xmlFileName);
     

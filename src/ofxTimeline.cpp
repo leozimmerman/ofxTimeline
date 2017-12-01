@@ -1983,6 +1983,43 @@ bool ofxTimeline::isSwitchOn(string trackName, int atFrame){
 	return isSwitchOn(trackName, timecode.secondsForFrame(atFrame));
 }
 
+ofxTLNotes* ofxTimeline::addNotes(string trackName){
+    string uniqueName = confirmedUniqueName(trackName);
+    return addNotes(uniqueName, nameToXMLName(uniqueName));
+}
+
+ofxTLNotes* ofxTimeline::addNotes(string trackName, string xmlFileName){
+    ofxTLNotes* newNotes = new ofxTLNotes();
+    newNotes->setCreatedByTimeline(true);
+    newNotes->setXMLFileName(xmlFileName);
+    addTrack(confirmedUniqueName(trackName), newNotes);
+    return newNotes;
+}
+
+int ofxTimeline::getNote(string trackName){
+    if(!hasTrack(trackName)){
+        ofLogError("ofxTimeline -- Couldn't find notes track " + trackName);
+        return 0;
+    }
+    
+    ofxTLNotes* notes = (ofxTLNotes*)trackNameToPage[trackName]->getTrack(trackName);
+    return notes->getNote();
+}
+
+int ofxTimeline::getNote(string trackName, float atTime){
+    if(!hasTrack(trackName)){
+        ofLogError("ofxTimeline -- Couldn't find notes track " + trackName);
+        return 0;
+    }
+    ofxTLNotes* notes = (ofxTLNotes*)trackNameToPage[trackName]->getTrack(trackName);
+    return notes->getNoteAtPercent(atTime/durationInSeconds);
+}
+
+int ofxTimeline::getNote(string name, int atFrame){
+    return getNote(name, timecode.secondsForFrame(atFrame));
+}
+
+
 ofxTLBangs* ofxTimeline::addBangs(string trackName){
     string uniqueName = confirmedUniqueName(trackName);
  	return addBangs(uniqueName, nameToXMLName(uniqueName));
