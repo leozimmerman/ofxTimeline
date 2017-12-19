@@ -1093,13 +1093,13 @@ void ofxTimeline::setWidth(float newWidth){
 void ofxTimeline::setHeight(float height){
 	if(height != totalDrawRect.height){
 		float staticHeight = totalDrawRect.height - currentPage->getDrawRect().height;
-		cout << "the static height is " << staticHeight << endl;
+        cout << "ofxTimeline: the static height is " << staticHeight << endl;
 		currentPage->setExpandToHeight(height - staticHeight);
 		currentPage->evenlyDistributeTrackHeights();
 		updatePagePositions();
         ofEventArgs args;
         ofNotifyEvent(events().viewWasResized, args);
-		cout << "desired height was " << height << " resulting height " << totalDrawRect.height << endl;
+		cout << "ofxTimeline: desired height was " << height << " resulting height " << totalDrawRect.height << endl;
 	}
 }
 
@@ -1614,7 +1614,7 @@ void ofxTimeline::checkLoop(){
     }
 }
 
-void ofxTimeline::draw(bool drawTickerMarks){
+void ofxTimeline::draw(bool drawTickerMarks, bool onlyTicker){
 
 	if(isSetup && isShowing){
 		ofPushStyle();
@@ -1637,9 +1637,10 @@ void ofxTimeline::draw(bool drawTickerMarks){
 
 		ofPushStyle();
         
-		currentPage->drawWhenNotDragging();//tweaked
-		
-        if(showZoomer)zoomer->_draw();
+        if (onlyTicker == false) {
+            currentPage->drawWhenNotDragging();//tweaked
+        }
+		if(showZoomer)zoomer->_draw();
 
 		//draw these because they overlay the rest of the timeline with info
         //ticker->_draw();

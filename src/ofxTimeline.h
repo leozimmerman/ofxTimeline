@@ -142,7 +142,7 @@ class ofxTimeline : ofThread {
     virtual void show();
 	virtual void hide();
 	virtual bool getIsShowing();
-	virtual void draw(bool drawTickerMarks=true); //tikerMarks consumes a lot of resources
+    virtual void draw(bool drawTickerMarks=true, bool onlyTicker = false); //tikerMarks consumes a lot of resources / onlyTicker: for hidden mode
     
 	virtual void mousePressed(ofMouseEventArgs& args);
 	virtual void mouseMoved(ofMouseEventArgs& args);

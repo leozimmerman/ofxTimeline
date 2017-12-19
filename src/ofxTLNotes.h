@@ -36,10 +36,11 @@
 
 #include "ofMain.h"
 #include "ofxTLKeyframes.h"
+#include "ofxTextInputField.h"
 
 class ofxTLNote : public ofxTLKeyframe {
 public:
-    ofxTLNote();
+    ofxTLNote(int p);
     int pitch;
     string getPitchDisplay();
 
@@ -65,11 +66,15 @@ public:
     virtual void keyPressed(ofKeyEventArgs& args);
     
     void setRange(ofRange range);
+    void setOctavesNum(int oct);
     
     int getNote();
     int getNoteAtMillis(long millis);
     int getNoteAtPercent(float percent);
     
+    
+    ofxTextInputField textField;
+    ofRectangle display;
     
     //time range contains MIN and MAX time in milliseconds
     //valueRange is 0 at the bottom of the track, and 1 at the top

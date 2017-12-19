@@ -11,8 +11,8 @@
 
 
 
-ofxTLNote::ofxTLNote(){
-    pitch = 60;
+ofxTLNote::ofxTLNote(int p){
+    pitch = p;
 }
 
 string ofxTLNote::getPitchDisplay() {
@@ -69,15 +69,24 @@ string ofxTLNote::getPitchDisplay() {
 //----------------------------
 
 ofxTLNotes::ofxTLNotes(){
-
-    setRange(ofRange(60, 71));
+    
+    setOctavesNum(1);
+    textField.text = "1";
+    
 }
 
 ofxTLNotes::~ofxTLNotes(){
     
 }
+void ofxTLNotes::setOctavesNum(int oct) {
+    
+    int min = 0;
+    int max = 12 * oct;
+    
+    setRange(ofRange(min, max));
+}
 
-void ofxTLNotes::setRange(ofRange range) {
+void ofxTLNotes::setRange(ofRange range){
     valueRange = range;
     gridRows.clear();
     
@@ -121,23 +130,37 @@ void ofxTLNotes::draw(){
             
             if(hoverKeyframe == note){
                 ofSetColor(timeline->getColors().highlightColor, 100);
-                ofCircle(screenPoint, 5);
+                ofDrawCircle(screenPoint, 5);
                 ofSetColor(timeline->getColors().textColor);
                 timeline->getFont().drawString(note->getPitchDisplay(), screenPoint.x, screenPoint.y - 5);
             }
             else if(isKeyframeSelected(note)){
                 ofSetColor(timeline->getColors().textColor);
-                ofCircle(screenPoint, 5);
+                ofDrawCircle(screenPoint, 5);
                 ofSetColor(timeline->getColors().textColor);
                 timeline->getFont().drawString(note->getPitchDisplay(), screenPoint.x, screenPoint.y - 5);
             }
 
             //ofSetColor(emptyKeyframe->color);
             ofSetColor(timeline->getColors().keyColor);
-            ofCircle(screenPoint, 4);
+            ofDrawCircle(screenPoint, 4);
         }
+        
     }
     
+   
+    
+    //int textHeight = bounds.y + 10;
+    display = ofRectangle(bounds.x , bounds.y , 20, 20);
+    
+    textField.bounds.x = display.x;
+    textField.bounds.y = display.y;
+    
+     ofSetColor(0);
+    ofDrawRectangle(display);
+    
+    ofSetColor(255);
+    textField.draw();
     ofPopStyle();
 }
 
@@ -215,9 +238,16 @@ int ofxTLNotes::getNoteAtMillis(long millis){
     if(keyframes.size() == 0){
         return 0;
     }
+    for(int i = 1; i < keyframes.size(); i++){
+        
+        if(keyframes[i]->time == millis) {
+            ofxTLNote* note  = (ofxTLNote*)keyframes[i];
+            return note->pitch;
+        }
+    }
     
-    vector<int> notes;
-    
+    //vector<int> notes;
+    /*
     //just one, or sampling before the first we can just return the first
     if(keyframes.size() == 1 || keyframes[0]->time >= millis){
         return ((ofxTLNote*)keyframes[0])->pitch;
@@ -241,6 +271,7 @@ int ofxTLNotes::getNoteAtMillis(long millis){
 //            return prevKey->pitch.getLerped(nextKey->pitch, alpha);
         }
     }
+    */
     return 0;
 }
 
@@ -248,11 +279,33 @@ string ofxTLNotes::getTrackType() {
     return "Notes";
 }
 
+bool enteringText = false;
 bool ofxTLNotes::mousePressed(ofMouseEventArgs& args, long millis){
     //for the general behavior call the super class
     //or you can do your own thing. Return true if the click caused an item to
     //become selectd
-    return ofxTLKeyframes::mousePressed(args, millis);
+    
+    if (display.inside(args.x, args.y)) {
+        if (textField.isEditing()) {
+            textField.endEditing();
+            enteringText = false;
+            timeline->dismissedModalContent();
+        } else {
+            textField.beginEditing();
+            enteringText = true;
+            timeline->presentedModalContent(this);
+        }
+        return false;
+    } else {
+        return ofxTLKeyframes::mousePressed(args, millis);
+    }
+    
+    
+    //if we get all the way here we didn't click on a text field and we aren't
+    //currently entering text so proceed as normal
+    
+    
+    
 }
 
 void ofxTLNotes::mouseMoved(ofMouseEventArgs& args, long millis){
@@ -286,7 +339,32 @@ void ofxTLNotes::quantizeNote(ofxTLNote* note){
 
 //keys pressed events, and nuding from arrow keys with normalized nudge amount 0 - 1.0
 void ofxTLNotes::keyPressed(ofKeyEventArgs& args){
-    ofxTLKeyframes::keyPressed(args);
+    
+    if (enteringText) {
+        if(args.key == OF_KEY_RETURN){
+            textField.endEditing();
+            enteringText = false;
+            timeline->dismissedModalContent();
+            //timeline->flagTrackModified(this);
+            
+            int octaves = std::stoi(textField.text);
+            if (octaves == 0) {
+                octaves = 1;
+                textField.text = "1";
+            } else if (octaves > 8) {
+                octaves = 8;
+                textField.text = "8";
+            }
+            
+            setOctavesNum(octaves);
+            
+        } else {
+            textField.keyPressed(args);
+        }
+        
+    } else {
+        ofxTLKeyframes::keyPressed(args);
+    }
 }
 
 void ofxTLNotes::regionSelected(ofLongRange timeRange, ofRange valueRange){
@@ -296,14 +374,15 @@ void ofxTLNotes::regionSelected(ofLongRange timeRange, ofRange valueRange){
 
 ofxTLKeyframe* ofxTLNotes::newKeyframe(){
 
-    ofxTLNote* newNote = new ofxTLNote();
+    ofxTLNote* newNote = new ofxTLNote(valueRange.min);
+    quantizeNote(newNote);
     return newNote;
 }
 
 
 void ofxTLNotes::restoreKeyframe(ofxTLKeyframe* key, ofxXmlSettings& xmlStore){
     ofxTLNote* note = (ofxTLNote*)key;
-    note->pitch = xmlStore.getValue("pitch", 60);
+    note->pitch = xmlStore.getValue("pitch", valueRange.min);
     note->value = xmlStore.getValue("value", 0.5);
 
 }

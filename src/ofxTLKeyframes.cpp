@@ -777,10 +777,11 @@ void ofxTLKeyframes::keyPressed(ofKeyEventArgs& args){
     {
         simplifySelectedKeyframes();
     }
-    if ( args.key == 'k')
-    {
+    /* Removed this, because it adds in all tracks simoultanously.
+    if ( args.key == 'k') {
         addKeyframe( getValue() );
     }
+     */
 }
 
 void ofxTLKeyframes::nudgeBy(ofVec2f nudgePercent){
