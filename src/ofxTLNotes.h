@@ -67,6 +67,7 @@ public:
     
     void setRange(ofRange range);
     void setOctavesNum(int oct);
+    void didEnterText();
     
     int getNote();
     int getNoteAtMillis(long millis);
@@ -90,7 +91,10 @@ public:
     
 protected:
     vector<GridRow> gridRows;
-    void quantizeNote(ofxTLNote* note);
+    //void quantizeAllNotesByPos();
+    void quantizeNoteByPos(ofxTLNote* note);
+    void quantizeAllNotesByPitch();
+    void quantizeNoteByPitch(ofxTLNote* note);
     float rowNormHeight;
     
     //always return the type for your track, in our case ofxTLEmptyKeyframe;

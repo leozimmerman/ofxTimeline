@@ -70,39 +70,13 @@ string ofxTLNote::getPitchDisplay() {
 
 ofxTLNotes::ofxTLNotes(){
     
-    setOctavesNum(1);
-    textField.text = "1";
-    
+    setRange(ofRange(60,72));
 }
 
 ofxTLNotes::~ofxTLNotes(){
     
 }
-void ofxTLNotes::setOctavesNum(int oct) {
-    
-    int min = 0;
-    int max = 12 * oct;
-    
-    setRange(ofRange(min, max));
-}
 
-void ofxTLNotes::setRange(ofRange range){
-    valueRange = range;
-    gridRows.clear();
-    
-    for (int i = 0; i <= valueRange.span(); i++) {
-        rowNormHeight = 1 / (valueRange.span()+1);
-        float rowNormOffset = rowNormHeight * 0.5;
-        float y = i * rowNormHeight + rowNormOffset;
-        int p = valueRange.min + i;
-        
-        GridRow row = GridRow();
-        row.yPos = y;
-        row.pitch = p;
-        gridRows.push_back(row);
-    }
-    
-}
 
 void ofxTLNotes::draw(){
     
@@ -115,7 +89,6 @@ void ofxTLNotes::draw(){
     }
     
     drawBackgroundGrid();
-    
     
     ofPushStyle();
     
@@ -151,7 +124,7 @@ void ofxTLNotes::draw(){
    
     
     //int textHeight = bounds.y + 10;
-    display = ofRectangle(bounds.x , bounds.y , 20, 20);
+    display = ofRectangle(bounds.x , bounds.y , 50, 20);
     
     textField.bounds.x = display.x;
     textField.bounds.y = display.y;
@@ -279,6 +252,74 @@ string ofxTLNotes::getTrackType() {
     return "Notes";
 }
 
+void ofxTLNotes::setOctavesNum(int oct) {
+    
+    int min = 0;
+    int max = 12 * oct;
+    
+    setRange(ofRange(min, max));
+}
+
+void ofxTLNotes::setRange(ofRange range){
+    
+    valueRange = range;
+    textField.text = ofToString(valueRange.min) + "-" + ofToString(valueRange.max);
+    gridRows.clear();
+    
+    for (int i = 0; i <= valueRange.span(); i++) {
+        rowNormHeight = 1 / (valueRange.span()+1);
+        float rowNormOffset = rowNormHeight * 0.5;
+        float y = i * rowNormHeight + rowNormOffset;
+        int p = valueRange.min + i;
+        
+        GridRow row = GridRow();
+        row.yPos = y;
+        row.pitch = p;
+        gridRows.push_back(row);
+    }
+    
+    quantizeAllNotesByPitch();
+    
+}
+
+void ofxTLNotes::didEnterText(){
+    
+    string s = textField.text;
+    string delimiter = "-";
+    
+//    string token = s.substr(0, s.find(delimiter));
+//
+//    cout<<"token "<<token<<endl;
+//    cout<<"string "<<s<<endl;
+
+    int min;
+    int max;
+    
+    size_t pos = 0;
+    string token;
+    vector<string> v;
+    while ((pos = s.find(delimiter)) != std::string::npos) {
+        token = s.substr(0, pos);
+        //std::cout << token << std::endl;
+        v.push_back(token);
+        s.erase(0, pos + delimiter.length());
+    }
+    //std::cout<< "final: " << s << std::endl;
+    v.push_back(s);
+    
+    min = std::stoi(v[0]);
+    max = std::stoi(v[1]);
+    
+    
+    if (min < 0) {min = 0;}
+    if (max < 0) {max = 0;}
+    if (min > 96) {min = 96;}
+    if (max > 96) {max = 96;}
+    if (max <= min) {max = min+1;}
+    
+    setRange(ofRange(min, max));
+}
+
 bool enteringText = false;
 bool ofxTLNotes::mousePressed(ofMouseEventArgs& args, long millis){
     //for the general behavior call the super class
@@ -320,12 +361,12 @@ void ofxTLNotes::mouseReleased(ofMouseEventArgs& args, long millis){
     ofxTLKeyframes::mouseReleased(args, millis);
     for(int k = 0; k < selectedKeyframes.size(); k++) {
         ofxTLNote* note = (ofxTLNote*)selectedKeyframes[k];
-        quantizeNote(note);
+        quantizeNoteByPos(note);
     }
 
 }
 
-void ofxTLNotes::quantizeNote(ofxTLNote* note){
+void ofxTLNotes::quantizeNoteByPos(ofxTLNote* note){
     
     for (int i = 0; i <= gridRows.size(); i++) {
         float diff = abs(note->value - gridRows[i].yPos);
@@ -335,6 +376,27 @@ void ofxTLNotes::quantizeNote(ofxTLNote* note){
             return;
         }
     }
+}
+void ofxTLNotes::quantizeAllNotesByPitch(){
+    for(int k = 0; k < keyframes.size(); k++) {
+        ofxTLNote* note = (ofxTLNote*)keyframes[k];
+        quantizeNoteByPitch(note);
+    }
+}
+void ofxTLNotes::quantizeNoteByPitch(ofxTLNote* note){
+    
+    if (note->pitch < valueRange.min) {note->pitch = valueRange.min;}
+    else if (note->pitch > valueRange.max) {note->pitch = valueRange.max;}
+    
+    for (int i = 0; i <= gridRows.size(); i++) {
+        if (note->pitch == gridRows[i].pitch) {
+            note->value = gridRows[i].yPos;
+            return;
+        }
+    }
+    
+    
+    
 }
 
 //keys pressed events, and nuding from arrow keys with normalized nudge amount 0 - 1.0
@@ -346,17 +408,8 @@ void ofxTLNotes::keyPressed(ofKeyEventArgs& args){
             enteringText = false;
             timeline->dismissedModalContent();
             //timeline->flagTrackModified(this);
+            didEnterText();
             
-            int octaves = std::stoi(textField.text);
-            if (octaves == 0) {
-                octaves = 1;
-                textField.text = "1";
-            } else if (octaves > 8) {
-                octaves = 8;
-                textField.text = "8";
-            }
-            
-            setOctavesNum(octaves);
             
         } else {
             textField.keyPressed(args);
@@ -375,7 +428,7 @@ void ofxTLNotes::regionSelected(ofLongRange timeRange, ofRange valueRange){
 ofxTLKeyframe* ofxTLNotes::newKeyframe(){
 
     ofxTLNote* newNote = new ofxTLNote(valueRange.min);
-    quantizeNote(newNote);
+    quantizeNoteByPos(newNote);
     return newNote;
 }
 
