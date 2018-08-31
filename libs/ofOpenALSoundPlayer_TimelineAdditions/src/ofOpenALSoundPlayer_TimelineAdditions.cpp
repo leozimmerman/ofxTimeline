@@ -29,6 +29,23 @@ static set<ofOpenALSoundPlayer_TimelineAdditions*> players;
 void ofOpenALSoundUpdate_TimelineAdditions(){
 	alcProcessContext(ofOpenALSoundPlayer_TimelineAdditions::alContext);
 }
+static string getALErrorString(ALenum error) {
+    switch(error) {
+        case AL_NO_ERROR:
+            return "AL_NO_ERROR";
+        case AL_INVALID_NAME:
+            return "AL_INVALID_NAME";
+        case AL_INVALID_ENUM:
+            return "AL_INVALID_ENUM";
+        case AL_INVALID_VALUE:
+            return "AL_INVALID_VALUE";
+        case AL_INVALID_OPERATION:
+            return "AL_INVALID_OPERATION";
+        case AL_OUT_OF_MEMORY:
+            return "AL_OUT_OF_MEMORY";
+    };
+    return "UNKWOWN_ERROR";
+}
 
 #define BUFFER_STREAM_SIZE 4096
 
@@ -109,11 +126,11 @@ void ofOpenALSoundPlayer_TimelineAdditions::close(){
 }
 
 // ----------------------------------------------------------------------------
-bool ofOpenALSoundPlayer_TimelineAdditions::sfReadFile(string path, vector<short> & buffer, vector<float> & fftAuxBuffer){
+bool ofOpenALSoundPlayer_TimelineAdditions::sfReadFile(const std::filesystem::path& path, vector<short> & buffer, vector<float> & fftAuxBuffer){
 	SF_INFO sfInfo;
 	SNDFILE* f = sf_open(path.c_str(),SFM_READ,&sfInfo);
 	if(!f){
-		ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: couldnt read " + path);
+        ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "sfReadFile(): couldn't read \"" << path << "\"";
 		return false;
 	}
 
@@ -131,7 +148,8 @@ bool ofOpenALSoundPlayer_TimelineAdditions::sfReadFile(string path, vector<short
 
 		sf_count_t samples_read = sf_read_float (f, &fftAuxBuffer[0], fftAuxBuffer.size());
 		if(samples_read<(int)fftAuxBuffer.size())
-			ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: couldnt read " + path);
+			ofLogWarning("ofOpenALSoundPlayer_TimelineAdditions") << "sfReadFile(): read " << samples_read << " float samples, expected "
+        << fftAuxBuffer.size() << " for \"" << path << "\"";
 		for (int i = 0 ; i < int(fftAuxBuffer.size()) ; i++){
 			fftAuxBuffer[i] *= scale ;
 			buffer[i] = 32565.0 * fftAuxBuffer[i];
@@ -139,13 +157,15 @@ bool ofOpenALSoundPlayer_TimelineAdditions::sfReadFile(string path, vector<short
 	}else{
 		sf_count_t frames_read = sf_readf_short(f,&buffer[0],sfInfo.frames);
 		if(frames_read<sfInfo.frames){
-			ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: couldnt read buffer for " + path);
-			return false;
+            ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "sfReadFile(): read " << frames_read << " frames from buffer, expected "
+            << sfInfo.frames << " for \"" << path << "\"";
+            return false;
 		}
 		sf_seek(f,0,SEEK_SET);
 		frames_read = sf_readf_float(f,&fftAuxBuffer[0],sfInfo.frames);
 		if(frames_read<sfInfo.frames){
-			ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: couldnt read fft buffer for " + path);
+            ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "sfReadFile(): read " << frames_read << " frames from fft buffer, expected "
+            << sfInfo.frames << " for \"" << path << "\"";
 			return false;
 		}
 	}
@@ -196,13 +216,15 @@ bool ofOpenALSoundPlayer_TimelineAdditions::mpg123ReadFile(string path,vector<sh
 #endif
 
 //------------------------------------------------------------
-bool ofOpenALSoundPlayer_TimelineAdditions::decoderReadFile(string path,vector<short> & buffer,vector<float> & fftAuxBuffer){
+bool ofOpenALSoundPlayer_TimelineAdditions::decoderReadFile(const std::filesystem::path& path,vector<short> & buffer,vector<float> & fftAuxBuffer){
+    
+    std::string fileName = ofToDataPath(path);
     
     ofxAudioDecoder audioDecoder;
-    audioDecoder.load(path);
+    audioDecoder.load(fileName);
     
     if (audioDecoder.getNumSamples() == 0) {
-        ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: couldnt read " + path);
+        ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "couldn't read \"" << path << "\"";
         return false;
     }
     
@@ -222,12 +244,12 @@ bool ofOpenALSoundPlayer_TimelineAdditions::decoderReadFile(string path,vector<s
 }
 
 //------------------------------------------------------------
-bool ofOpenALSoundPlayer_TimelineAdditions::sfStream(string path,vector<short> & buffer,vector<float> & fftAuxBuffer){
+bool ofOpenALSoundPlayer_TimelineAdditions::sfStream(const std::filesystem::path& path, vector<short> & buffer,vector<float> & fftAuxBuffer){
 	if(!streamf){
 		SF_INFO sfInfo;
 		streamf = sf_open(path.c_str(),SFM_READ,&sfInfo);
 		if(!streamf){
-			ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: couldnt read " + path);
+			ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "sfStream(): couldn't read \"" << path << "\"";
 			return false;
 		}
 
@@ -285,21 +307,22 @@ bool ofOpenALSoundPlayer_TimelineAdditions::sfStream(string path,vector<short> &
 
 #ifdef OF_USING_MPG123
 //------------------------------------------------------------
-bool ofOpenALSoundPlayer_TimelineAdditions::mpg123Stream(string path,vector<short> & buffer,vector<float> & fftAuxBuffer){
+bool ofOpenALSoundPlayer_TimelineAdditions::mpg123Stream(const std::filesystem::path& path,vector<short> & buffer,vector<float> & fftAuxBuffer){
 	if(!mp3streamf){
 		int err = MPG123_OK;
 		mp3streamf = mpg123_new(NULL,&err);
 		if(mpg123_open(mp3streamf,path.c_str())!=MPG123_OK){
 			mpg123_close(mp3streamf);
 			mpg123_delete(mp3streamf);
-			ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: couldnt read " + path);
+            ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "mpg123Stream(): couldn't read \"" << path << "\"";
 			return false;
 		}
 
 		long int rate;
 		mpg123_getformat(mp3streamf,&rate,&channels,&stream_encoding);
 		if(stream_encoding!=MPG123_ENC_SIGNED_16){
-			ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: unsupported encoding");
+            ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "mpg123Stream(): " << getMpg123EncodingString(stream_encoding)
+            << " encoding for \"" << path << "\"" << " unsupported, expecting MPG123_ENC_SIGNED_16";
 			return false;
 		}
 		samplerate = rate;
@@ -335,13 +358,13 @@ bool ofOpenALSoundPlayer_TimelineAdditions::mpg123Stream(string path,vector<shor
 #endif
 
 //------------------------------------------------------------
-void ofOpenALSoundPlayer_TimelineAdditions::stream(string fileName, vector<short> & buffer){
+bool ofOpenALSoundPlayer_TimelineAdditions::stream(const std::filesystem::path& fileName, vector<short> & buffer){
 #ifdef OF_USING_MPG123
 	if(ofFilePath::getFileExt(fileName)=="mp3" || ofFilePath::getFileExt(fileName)=="MP3" || mp3streamf){
-		if(!mpg123Stream(fileName,buffer,fftAuxBuffer)) return;
+		if(!mpg123Stream(fileName,buffer,fftAuxBuffer)) return false;
 	}else
 #endif
-		if(!sfStream(fileName,buffer,fftAuxBuffer)) return;
+		if(!sfStream(fileName,buffer,fftAuxBuffer)) return false;
 
 	fftBuffers.resize(channels);
 	int numFrames = buffer.size()/channels;
@@ -352,16 +375,17 @@ void ofOpenALSoundPlayer_TimelineAdditions::stream(string fileName, vector<short
 			fftBuffers[i][j] = fftAuxBuffer[j*channels+i];
 		}
 	}
+    return true;
 }
 
-void ofOpenALSoundPlayer_TimelineAdditions::readFile(string fileName, vector<short> & buffer){
+bool ofOpenALSoundPlayer_TimelineAdditions::readFile(const std::filesystem::path& fileName, vector<short> & buffer){
     if(ofFilePath::getFileExt(fileName)!="mp3" && ofFilePath::getFileExt(fileName)!="MP3"){
-		if(!sfReadFile(fileName,buffer,fftAuxBuffer)) return;
+		if(!sfReadFile(fileName,buffer,fftAuxBuffer)) return false;
 	}else{
 #ifdef OF_USING_MPG123
-		if(!mpg123ReadFile(fileName,buffer,fftAuxBuffer)) return;
+		if(!mpg123ReadFile(fileName,buffer,fftAuxBuffer)) return false;
 #else
-        if(!decoderReadFile(fileName,buffer,fftAuxBuffer)) return;
+        if(!decoderReadFile(fileName,buffer,fftAuxBuffer)) return false;
 #endif
     }
 
@@ -374,25 +398,26 @@ void ofOpenALSoundPlayer_TimelineAdditions::readFile(string fileName, vector<sho
 			fftBuffers[i][j] = fftAuxBuffer[j*channels+i];
 		}
 	}
-    
+    return true;
     
 }
 
 //------------------------------------------------------------
-bool ofOpenALSoundPlayer_TimelineAdditions::load(string fileName, bool is_stream){
-
+bool ofOpenALSoundPlayer_TimelineAdditions::load(const std::filesystem::path& _fileName, bool is_stream){
+    
+    std::filesystem::path fileName = ofToDataPath(_fileName);
+    
     string ext = ofToLower(ofFilePath::getFileExt(fileName));
     if(ext != "wav" && ext != "aif" && ext != "aiff" && ext != "mp3"){
         ofLogError("Sound player can only load .wav .aiff or .mp3 files");
         return false;
     }
        
-    fileName = ofToDataPath(fileName);
-
 	bLoadedOk = false;
 	bMultiPlay = false;
 	isStreaming = is_stream;
-	
+	int err = AL_NO_ERROR;
+    
 	// [1] init sound systems, if necessary
 	initialize();
 
@@ -425,16 +450,21 @@ bool ofOpenALSoundPlayer_TimelineAdditions::load(string fileName, bool is_stream
 	if(channels==1){
 		sources.resize(1);
 		alGenSources(1, &sources[0]);
-		if (alGetError() != AL_NO_ERROR){
-			ofLog(OF_LOG_WARNING,"ofOpenALSoundPlayer_TimelineAdditions: openAL error reported generating sources for " + fileName);
-			return false;
+        err = alGetError();
+		if (err != AL_NO_ERROR){
+            ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "loadSound(): couldn't generate source for \"" << fileName << "\": "
+            << (int) err << " " << getALErrorString(err);
+            return false;
 		}
 
 		for(int i=0; i<(int)buffers.size(); i++){
+            alGetError(); // Clear error.
 			alBufferData(buffers[i],format,&buffer[0],buffer.size()*2,samplerate);
-			if (alGetError() != AL_NO_ERROR){
-				ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: error creating buffer");
-				return false;
+            err = alGetError();
+			if (err != AL_NO_ERROR){
+                ofLogError("ofOpenALSoundPlayer_TimelineAdditions:") << "loadSound(): couldn't create buffer for \"" << fileName << "\": "
+                << (int) err << " " << getALErrorString(err);
+                return false;
 			}
 			if(isStreaming){
 				stream(fileName,buffer);
@@ -462,10 +492,12 @@ bool ofOpenALSoundPlayer_TimelineAdditions::load(string fileName, bool is_stream
 					for(int j=0;j<numFrames;j++){
 						multibuffer[i][j] = buffer[j*channels+i];
 					}
+                    alGetError(); // Clear error.
 					alBufferData(buffers[s*2+i],format,&multibuffer[i][0],buffer.size()/channels*2,samplerate);
-					if (alGetError() != AL_NO_ERROR){
-						ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: error creating stereo buffers for " + fileName);
-						return false;
+                    err = alGetError();
+					if (err != AL_NO_ERROR){
+                        ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "loadSound(): couldn't create stereo buffers for \"" << fileName << "\": " << (int) err << " " << getALErrorString(err);
+                        return false;
 					}
 					alSourceQueueBuffers(sources[i],1,&buffers[s*2+i]);
 					stream(fileName,buffer);
@@ -477,19 +509,24 @@ bool ofOpenALSoundPlayer_TimelineAdditions::load(string fileName, bool is_stream
 				for(int j=0;j<numFrames;j++){
 					multibuffer[i][j] = buffer[j*channels+i];
 				}
+                alGetError(); // Clear error.
 				alBufferData(buffers[i],format,&multibuffer[i][0],buffer.size()/channels*2,samplerate);
-				if (alGetError() != AL_NO_ERROR){
-					ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: error creating stereo buffers for " + fileName);
-					return false;
+				err = alGetError();
+                if (err != AL_NO_ERROR){
+                    ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "loadSound(): couldn't create stereo buffers for \"" << fileName << "\": "
+                    << (int) err << " " << getALErrorString(err);
+                    return false;
 				}
 				alSourcei (sources[i], AL_BUFFER,   buffers[i]   );
 			}
 		}
 
 		for(int i=0;i<channels;i++){
-			if (alGetError() != AL_NO_ERROR){
-				ofLog(OF_LOG_ERROR,"ofOpenALSoundPlayer_TimelineAdditions: error creating stereo sources for " + fileName);
-				return false;
+            err = alGetError();
+			if (err != AL_NO_ERROR){
+                ofLogError("ofOpenALSoundPlayer_TimelineAdditions") << "loadSound(): couldn't create stereo sources for \"" << fileName << "\": "
+                << (int) err << " " << getALErrorString(err);
+                return false;
 			}
 
 			// only stereo panning
@@ -515,7 +552,7 @@ bool ofOpenALSoundPlayer_TimelineAdditions::load(string fileName, bool is_stream
     channelSoundBuffer.clear();
     //--------------------------------------
     
-	ofLogVerbose("ofOpenALSoundPlayer_TimelineAdditions: successfully loaded " + fileName);
+    ofLogVerbose("ofOpenALSoundPlayer_TimelineAdditions: successfully loaded: ") << fileName;
 	bLoadedOk = true;
 	return true;
     

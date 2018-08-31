@@ -67,9 +67,9 @@ void ofxTLEmptyKeyframes::draw(){
 				ofSetColor(timeline->getColors().keyColor);
 			}
 			ofVec2f screenPoint = screenPositionForKeyframe(emptyKeyframe);
-			ofCircle(screenPoint, 7);
+			ofDrawCircle(screenPoint, 7);
 			ofSetColor(emptyKeyframe->color);
-			ofCircle(screenPoint, 5);
+			ofDrawCircle(screenPoint, 5);
 		}
 	}
 	

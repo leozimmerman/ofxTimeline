@@ -918,11 +918,13 @@ void ofxTLKeyframes::simplifySelectedKeyframes( float tolerance ){
         float startTime = (float)selectedKeyframes[0]->time;
         float timeNormalizationFactor = 1.0 / (float)selectedKeyframes.size();
         for(int k = 0; k < selectedKeyframes.size(); k++){
+   
             pts.push_back(ofPoint(((float)selectedKeyframes[k]->time - startTime)*timeNormalizationFactor,selectedKeyframes[k]->value));
         }
         deleteSelectedKeyframes();
 
-        ofPolyline line(pts);
+        //ofPolyline line(pts);
+        ofPolyline_<ofPoint> line(pts);
         line.simplify(tolerance);
         int i = 0;
         while ( i < line.size())

@@ -3,7 +3,7 @@
 #include "ofConstants.h"
 
 #include "ofMain.h"
-#include "ofBaseSoundPlayer.h"
+#include "ofSoundBaseTypes.h"
 #include "ofEvents.h"
 #include "ofThread.h"
 
@@ -73,7 +73,7 @@ class ofOpenALSoundPlayer_TimelineAdditions : public ofBaseSoundPlayer, public o
 		ofOpenALSoundPlayer_TimelineAdditions();
 		virtual ~ofOpenALSoundPlayer_TimelineAdditions();
 
-		bool load(string fileName, bool stream = false) override;
+        bool load(const std::filesystem::path& fileName, bool isStream = false) override;
 		void unload() override;
 		void play() override;
 		void stop() override;
@@ -148,17 +148,17 @@ class ofOpenALSoundPlayer_TimelineAdditions : public ofBaseSoundPlayer, public o
 		void createWindow(int size);
 		void runWindow(vector<float> & signal);
 		void initSystemFFT(int bands);
-
-		bool sfReadFile(string path,vector<short> & buffer,vector<float> & fftAuxBuffer);
-		bool sfStream(string path,vector<short> & buffer,vector<float> & fftAuxBuffer);
-#ifdef OF_USING_MPG123
-		bool mpg123ReadFile(string path,vector<short> & buffer,vector<float> & fftAuxBuffer);
-		bool mpg123Stream(string path,vector<short> & buffer,vector<float> & fftAuxBuffer);
-#endif
-        bool decoderReadFile(string path,vector<short> & buffer,vector<float> & fftAuxBuffer);
-
-		void readFile(string fileName,vector<short> & buffer);
-		void stream(string fileName, vector<short> & buffer);
+    
+        bool sfReadFile(const std::filesystem::path& path,std::vector<short> & buffer,std::vector<float> & fftAuxBuffer);
+        bool sfStream(const std::filesystem::path& path,std::vector<short> & buffer,std::vector<float> & fftAuxBuffer);
+    #ifdef OF_USING_MPG123
+        bool mpg123ReadFile(const std::filesystem::path& path,std::vector<short> & buffer,std::vector<float> & fftAuxBuffer);
+        bool mpg123Stream(const std::filesystem::path& path,std::vector<short> & buffer,std::vector<float> & fftAuxBuffer);
+    #endif
+        bool decoderReadFile(const std::filesystem::path& fileName,vector<short> & buffer,vector<float> & fftAuxBuffer);
+    
+        bool readFile(const std::filesystem::path& fileName,std::vector<short> & buffer);
+        bool stream(const std::filesystem::path& fileName, std::vector<short> & buffer);
 
 		bool isStreaming;
 		bool bMultiPlay;

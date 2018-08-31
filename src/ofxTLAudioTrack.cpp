@@ -194,7 +194,7 @@ void ofxTLAudioTrack::recomputePreview(){
 			float pointInTrack = screenXtoNormalizedX( i ) * normalizationRatio; //will scale the screenX into wave's 0-1.0
 			float trackCenter = bounds.y + trackHeight * (c+1);
 			
-			ofPoint * vertex = & preview.getVertices()[ (i - bounds.x) * 2];
+			glm::tvec3<float, glm::precision::packed_highp> * vertex = & preview.getVertices()[(i - bounds.x) * 2];
 			
 			if(pointInTrack >= 0 && pointInTrack <= 1.0){
 				//draw sample at pointInTrack * waveDuration;
