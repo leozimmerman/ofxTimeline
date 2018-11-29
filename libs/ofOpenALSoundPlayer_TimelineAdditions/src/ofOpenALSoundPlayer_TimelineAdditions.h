@@ -18,7 +18,7 @@
 #include "kiss_fft.h"
 #include "kiss_fftr.h"
 
-#include <sndfile.h>
+#include "sndfile.h"
 
 #ifdef OF_USING_MPG123
 	#include <mpg123.h>
