@@ -2315,11 +2315,12 @@ string ofxTimeline::nameToXMLName(string trackName){
 
 string ofxTimeline::confirmedUniqueName(string name){
     string uniqueName = name;
-    ///
+    /* Disable renaming: TrackName_1
     int attempts = 0;
     while(trackNameToPage.find(uniqueName) != trackNameToPage.end()){
         uniqueName = name + "_" + ofToString(attempts++);
     }
+    */
     return uniqueName;
 }
 
