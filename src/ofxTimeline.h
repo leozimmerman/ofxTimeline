@@ -482,6 +482,8 @@ class ofxTimeline : ofThread {
 
     string nameToXMLName(string name);
     string confirmedUniqueName(string name);
+    
+    bool existsTrackWithName(string name);
 	
 	ofxTLPlaybackEventArgs createPlaybackEvent();
 	

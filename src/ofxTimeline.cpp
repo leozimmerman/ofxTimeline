@@ -312,9 +312,6 @@ void ofxTimeline::loadTracksFromFolder(string folderPath){
     for(int i = 0; i < pages.size(); i++){
         pages[i]->loadTracksFromFolder(folderPath);
     }
-
-//	cout << "*****TL " << name << " Loading tracks from " << folderPath << endl;
-
 	setWorkingFolder(folderPath);
 }
 
@@ -2318,11 +2315,16 @@ string ofxTimeline::nameToXMLName(string trackName){
 
 string ofxTimeline::confirmedUniqueName(string name){
     string uniqueName = name;
+    ///
     int attempts = 0;
-	while(trackNameToPage.find(uniqueName) != trackNameToPage.end()){
-		uniqueName = name + "_" + ofToString(attempts++);
+    while(trackNameToPage.find(uniqueName) != trackNameToPage.end()){
+        uniqueName = name + "_" + ofToString(attempts++);
     }
     return uniqueName;
+}
+
+bool ofxTimeline::existsTrackWithName(string name){
+    return trackNameToPage.find(name) != trackNameToPage.end();
 }
 
 void ofxTimeline::setDragTimeOffset(unsigned long long millisecondOffset){

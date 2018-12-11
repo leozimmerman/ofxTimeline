@@ -677,6 +677,14 @@ void ofxTLPage::bringTrackToBottom(ofxTLTrack* track){
     ofLogError("ofxTLPage::bringTrackToBottom -- track " + track->getName() + " not found");
 }
 
+void ofxTLPage::removeAllTracks(){
+    trackList.clear();
+    headers.clear();
+    tracks.clear();
+    focusedTrack = NULL;
+    recalculateHeight();
+}
+
 void ofxTLPage::removeTrack(ofxTLTrack* track){
     if(track == NULL){
         ofLogError() << "ofxTLPage::removeTrack -- removing null track!" << endl;

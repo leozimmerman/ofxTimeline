@@ -93,6 +93,7 @@ class ofxTLPage {
     virtual int getTracksNum(){return trackList.size();}
     
 	virtual void removeTrack(ofxTLTrack* track);
+    virtual void removeAllTracks();
 
     
     //computed on the fly so please use sparingly if you have to call it a lot
