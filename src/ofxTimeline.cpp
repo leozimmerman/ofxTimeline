@@ -1090,13 +1090,12 @@ void ofxTimeline::setWidth(float newWidth){
 void ofxTimeline::setHeight(float height){
 	if(height != totalDrawRect.height){
 		float staticHeight = totalDrawRect.height - currentPage->getDrawRect().height;
-        cout << "ofxTimeline: the static height is " << staticHeight << endl;
 		currentPage->setExpandToHeight(height - staticHeight);
 		currentPage->evenlyDistributeTrackHeights();
 		updatePagePositions();
         ofEventArgs args;
         ofNotifyEvent(events().viewWasResized, args);
-		cout << "ofxTimeline: desired height was " << height << " resulting height " << totalDrawRect.height << endl;
+		ofLogVerbose() << "ofxTimeline setHeight: desired height was " << height << " resulting height " << totalDrawRect.height << endl;
 	}
 }
 

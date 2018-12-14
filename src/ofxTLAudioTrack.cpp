@@ -156,7 +156,7 @@ void ofxTLAudioTrack::drawWaveforms(){
     ofPushStyle();
     ofSetColor(120);//arbitrary color
     if(shouldRecomputePreview || viewIsDirty){
-        recomputePreview();
+        recomputePreviewForWaveform();
     }
     for(int i=0; i<previews.size(); i++){
         previews[i].draw();
@@ -175,7 +175,7 @@ void ofxTLAudioTrack::recomputePreview(){
 	
 	previews.clear();
 	
-//	cout << "recomputing view with zoom bounds of " << zoomBounds << endl;
+	//cout << "recomputing view with zoom bounds of " << ofRandom(100) << endl;
 	
 	float normalizationRatio = timeline->getDurationInSeconds() / player.getDuration(); //need to figure this out for framebased...but for now we are doing time based
 	float trackHeight = bounds.height/(1+player.getNumChannels());
@@ -249,6 +249,11 @@ void ofxTLAudioTrack::recomputePreview(){
 	}
 	computedZoomBounds = zoomBounds;
 	shouldRecomputePreview = false;
+}
+
+void ofxTLAudioTrack::recomputePreviewForWaveform(){
+    recomputePreview();
+    viewIsDirty = false;
 }
 
 bool ofxTLAudioTrack::mousePressed(ofMouseEventArgs& args, long millis){

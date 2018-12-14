@@ -119,6 +119,7 @@ class ofxTLAudioTrack : public ofxTLTrack
     vector<ofPolyline>& getPreviews(){return previews;}
     bool getShouldRecomputePreview(){return shouldRecomputePreview;}
     void recomputePreview();
+    void recomputePreviewForWaveform();
     
   protected:
 	
