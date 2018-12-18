@@ -91,5 +91,7 @@ class ofxTLTicker : public ofxTLTrack
     
 	ofPath tickerMarks;
     ofPath customMarkers;///twk
+    vector<float> customMarkersMillis;///twk
 	void refreshTickMarks();
+    void refreshCustomMarkers();///twk
 };

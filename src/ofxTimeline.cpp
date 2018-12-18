@@ -1610,8 +1610,12 @@ void ofxTimeline::checkLoop(){
     }
 }
 
+//TODO: TickerMarks can be drawn now that ofxTLTicker view isDirty has been fix.
 void ofxTimeline::draw(bool drawTickerMarks, bool onlyTicker){
-
+    /*
+     * TickerMarks: yellow time marks in the ticker (where playhead is)
+     * onlyTicker: For not drawing on top of the audido track
+     */
 	if(isSetup && isShowing){
 		ofPushStyle();
 

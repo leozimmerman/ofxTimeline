@@ -65,8 +65,7 @@ void ofxTLTicker::draw(){
     if(viewIsDirty){
         refreshTickMarks();
     }
-    
-    
+
     tickerMarks.setStrokeColor( ofColor(200, 180, 40) );
     tickerMarks.setStrokeWidth(1);
     tickerMarks.draw(0, bounds.y);
@@ -177,17 +176,21 @@ void ofxTLTicker::draw(bool drawTickerMarks){
     float durationInview = endTime-startTime;
     float secondsPerPixel = durationInview / bounds.width;
     
-	if(viewIsDirty){
-		refreshTickMarks();
-	}
+
     
     if(drawTickerMarks){
+        if(viewIsDirty){
+            refreshTickMarks();
+        }
         tickerMarks.setStrokeColor( ofColor(200, 180, 40) );
         tickerMarks.setStrokeWidth(1);
         tickerMarks.draw(0, bounds.y);///high resources consuming!
     }
     
     ///CUSTOM MARKERS TEST:
+    if(viewIsDirty){
+        refreshCustomMarkers();
+    }
     
     customMarkers.setStrokeColor( ofColor::mediumOrchid );
     customMarkers.setStrokeWidth(3);
@@ -278,18 +281,31 @@ void ofxTLTicker::draw(bool drawTickerMarks){
 	ofRect(bounds);
 		
 	ofPopStyle();
+    
+    viewIsDirty = false; ///twk. TODO: test
+}
+
+///twk
+void ofxTLTicker::refreshCustomMarkers(){
+    customMarkers.clear();
+    for (auto millis : customMarkersMillis){
+        float x = millisToScreenX(millis);
+        customMarkers.moveTo(x, bounds.height - bounds.height);
+        customMarkers.lineTo(x, bounds.height);
+    }
 }
 
 ///twk
 void ofxTLTicker::addMarker(float millis){
-    
+    customMarkersMillis.push_back(millis);
     float x = millisToScreenX(millis);
     customMarkers.moveTo(x, bounds.height - bounds.height);
     customMarkers.lineTo(x, bounds.height);
-    
 }
 
 void ofxTLTicker::clearMarkers(){
+    customMarkersMillis.clear();
+    customMarkersMillis.shrink_to_fit();
     customMarkers.clear();
 }
 
@@ -512,6 +528,7 @@ void ofxTLTicker::mouseReleased(ofMouseEventArgs& args){
 
 void ofxTLTicker::setTotalDrawRect(ofRectangle drawRect){
 	totalDrawRect = drawRect;
+    
 }
 
 void ofxTLTicker::updateTimelinePosition(){
