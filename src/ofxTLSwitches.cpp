@@ -166,7 +166,7 @@ void ofxTLSwitches::draw(){
         }
         ofRect(switchKey->display);
     }
-    
+    /*
     ofFill();
 	ofSetLineWidth(5);
 	for(int i = keyframes.size()-1; i >= 0; i--){
@@ -176,17 +176,18 @@ void ofxTLSwitches::draw(){
 			
 			ofSetColor(timeline->getColors().backgroundColor);
 			int textHeight = bounds.y + 10 + ( (20*i) % int(MAX(bounds.height-15, 15)));
-			switchKey->textFieldDisplay = ofRectangle(MIN(screenX+3, bounds.getMaxX() - switchKey->textField.bounds.width),
-									   textHeight-10, 100, 15);
-			ofRect(switchKey->textFieldDisplay);
-			
-			ofSetColor(timeline->getColors().textColor);
-			
-			switchKey->textField.bounds.x = switchKey->textFieldDisplay.x;
-			switchKey->textField.bounds.y = switchKey->textFieldDisplay.y;
-			switchKey->textField.draw();
+            switchKey->textFieldDisplay = ofRectangle(MIN(screenX+3, bounds.getMaxX() - switchKey->textField.bounds.width),
+                                       textHeight-10, 100, 15);
+            ofRect(switchKey->textFieldDisplay);
+
+            ofSetColor(timeline->getColors().textColor);
+            
+            switchKey->textField.bounds.x = switchKey->textFieldDisplay.x;
+            switchKey->textField.bounds.y = switchKey->textFieldDisplay.y;
+            switchKey->textField.draw();
 		}
 	}
+    */
     
     ofPopStyle();
 }
@@ -229,6 +230,8 @@ ofxTLSwitch* ofxTLSwitches::getActiveSwitchAtMillis(long millis){
 bool ofxTLSwitches::mousePressed(ofMouseEventArgs& args, long millis){
     
     clickedTextField = NULL;
+    ///twk: Removerd textfield functionality
+    /*
     //look at each element to see if a text field was clicked
     for(int i = 0; i < keyframes.size(); i++){
         ofxTLSwitch* switchKey = (ofxTLSwitch*)keyframes[i];
@@ -242,6 +245,7 @@ bool ofxTLSwitches::mousePressed(ofMouseEventArgs& args, long millis){
     //so that keyboard input all goes to the text field.
     //selection model is designed so that you can type into
     //mulitple fields at once
+    
     if(clickedTextField != NULL){
         timeline->presentedModalContent(this);
         if(!ofGetModifierSelection()){
@@ -270,7 +274,7 @@ bool ofxTLSwitches::mousePressed(ofMouseEventArgs& args, long millis){
 	
 	if(enteringText)
         return false;
-    
+    */
     // ---
     if(placingSwitch != NULL){
 		if(isActive() && args.button == 0){
@@ -495,6 +499,7 @@ void ofxTLSwitches::updateTimeRanges(){
 void ofxTLSwitches::mouseReleased(ofMouseEventArgs& args, long millis){
     //if we didn't click on a text field and we are entering txt
     //take off the typing mode. Hitting enter will also do this
+    /*
     if(enteringText){
 		//if we clicked outside of the rect, definitely deslect everything
 		if(clickedTextField == NULL && !ofGetModifierSelection()){
@@ -520,6 +525,9 @@ void ofxTLSwitches::mouseReleased(ofMouseEventArgs& args, long millis){
         float clampedMillis = ofClamp(millis, 0.0, timeline->getDurationInMilliseconds());
         ofxTLKeyframes::mouseReleased(args, clampedMillis);
     }
+    */
+    float clampedMillis = ofClamp(millis, 0.0, timeline->getDurationInMilliseconds());
+    ofxTLKeyframes::mouseReleased(args, clampedMillis);
 }
 
 void ofxTLSwitches::keyPressed(ofKeyEventArgs& args){
