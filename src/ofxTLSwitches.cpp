@@ -516,7 +516,9 @@ void ofxTLSwitches::mouseReleased(ofMouseEventArgs& args, long millis){
 			timeline->flagTrackModified(this);
 		}
 	} else {
-        ofxTLKeyframes::mouseReleased(args, millis);
+        
+        float clampedMillis = ofClamp(millis, 0.0, timeline->getDurationInMilliseconds());
+        ofxTLKeyframes::mouseReleased(args, clampedMillis);
     }
 }
 
@@ -572,7 +574,11 @@ ofxTLKeyframe* ofxTLSwitches::newKeyframe(){
 
     //in the case of a click, start at the mouse positiion
     //if this is being restored from XML, the next call to restore will override this with what is in the XML
-    switchKey->timeRange.min = switchKey->timeRange.max = screenXToMillis(ofGetMouseX());
+    float x = MIN(ofGetMouseX(), bounds.getMaxX());
+    if (x< 0.0){x=0;}
+    switchKey->timeRange.max = screenXToMillis(x);
+    switchKey->timeRange.min = switchKey->timeRange.max;
+    
     switchKey->startSelected = false;
     switchKey->endSelected   = true; //true so you can drag the range to start with
 	

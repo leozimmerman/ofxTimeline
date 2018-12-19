@@ -1208,7 +1208,7 @@ bool ofxTimeline::getSnapToOtherElements(){
     return snapToOtherElements;
 }
 
-#pragma mark EVENTS
+#pragma mark - EVENTS
 void ofxTimeline::enableEvents() {
 	if (!usingEvents) {
 		ofAddListener(ofEvents().mouseMoved, this, &ofxTimeline::mouseMoved);
@@ -1493,7 +1493,7 @@ void ofxTimeline::exit(ofEventArgs& args){
 
 }
 
-#pragma mark DRAWING
+#pragma mark  - DRAWING
 void ofxTimeline::viewWasResized(ofEventArgs& args){
 	recalculateBoundingRects();
 }
