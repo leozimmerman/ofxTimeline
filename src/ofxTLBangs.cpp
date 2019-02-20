@@ -122,6 +122,19 @@ void ofxTLBangs::update(){
 //	}
 }
 
+bool ofxTLBangs::hasBangOnCurrentTrackTime() {
+    long thisTimelinePoint = currentTrackTime();
+    for(int i = 0; i < keyframes.size(); i++){
+        if(timeline->getInOutRangeMillis().contains(keyframes[i]->time) && lastTimelinePoint <= keyframes[i]->time && thisTimelinePoint >= keyframes[i]->time && thisTimelinePoint != lastTimelinePoint) {
+            
+            lastTimelinePoint = thisTimelinePoint;
+            return true;
+        }
+    }
+    lastTimelinePoint = thisTimelinePoint;
+    return false;
+}
+
 void ofxTLBangs::bangFired(ofxTLKeyframe* key){
     ofxTLBangEventArgs args;
     args.sender = timeline;

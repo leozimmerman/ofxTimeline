@@ -1969,6 +1969,16 @@ bool ofxTimeline::isSwitchOn(string trackName, float atTime){
     return switches->isOnAtPercent(atTime/durationInSeconds);
 }
 
+bool ofxTimeline::isBang(string trackName){
+    if(!hasTrack(trackName)){
+        ofLogError("ofxTimeline -- Couldn't find bang track " + trackName);
+        return false;
+    }
+
+    ofxTLBangs* bangs = (ofxTLBangs*)trackNameToPage[trackName]->getTrack(trackName);
+    return bangs->hasBangOnCurrentTrackTime();
+}
+
 bool ofxTimeline::isSwitchOn(string trackName){
 	if(!hasTrack(trackName)){
 		ofLogError("ofxTimeline -- Couldn't find switcher track " + trackName);

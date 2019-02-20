@@ -373,6 +373,8 @@ class ofxTimeline : ofThread {
 	bool isSwitchOn(string name);
 	bool isSwitchOn(string name, float atTime);
 	bool isSwitchOn(string name, int atFrame);
+    
+    bool isBang(string name);
 	
     ofxTLNotes* addNotes(string name);
     ofxTLNotes* addNotes(string name, string xmlFileName);
