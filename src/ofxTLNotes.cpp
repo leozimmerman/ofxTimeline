@@ -69,8 +69,8 @@ string ofxTLNote::getPitchDisplay() {
 //----------------------------
 
 ofxTLNotes::ofxTLNotes(){
-    
     setRange(ofRange(60,72));
+    lastTimelinePoint = 0;
 }
 
 ofxTLNotes::~ofxTLNotes(){
@@ -205,46 +205,24 @@ int ofxTLNotes::getNoteAtPercent(float percent){
     return getNoteAtMillis(millis);
 }
 
-///TODO: Testear esta función
 int ofxTLNotes::getNoteAtMillis(long millis){
+    if(keyframes.size() == 0){ return 0; }
     
-    if(keyframes.size() == 0){
-        return 0;
-    }
-    for(int i = 1; i < keyframes.size(); i++){
-        
-        if(keyframes[i]->time == millis) {
-            ofxTLNote* note  = (ofxTLNote*)keyframes[i];
+    long thisTimelinePoint = millis;
+    if (thisTimelinePoint == lastTimelinePoint){ return 0; }
+    
+    auto range = timeline->getInOutRangeMillis();
+    
+    for(auto keyframe : keyframes){
+        auto time = keyframe->time;
+        auto timeInRange = range.contains(time);
+        if(timeInRange && lastTimelinePoint <= time && thisTimelinePoint >= time) {
+            lastTimelinePoint = thisTimelinePoint;
+            ofxTLNote* note  = (ofxTLNote*)keyframe;
             return note->pitch;
         }
     }
-    
-    //vector<int> notes;
-    /*
-    //just one, or sampling before the first we can just return the first
-    if(keyframes.size() == 1 || keyframes[0]->time >= millis){
-        return ((ofxTLNote*)keyframes[0])->pitch;
-        
-    }
-    //sampling after the last we return the last
-    if(keyframes[keyframes.size()-1]->time <= millis){
-        return ((ofxTLNote*)keyframes[keyframes.size()-1])->pitch;
-    }
-    
-    //now we are somewhere in between, search
-    //keyframes will always be sorted
-    for(int i = 1; i < keyframes.size(); i++){
-        ///FIXME: Siempre van a coincidir??
-        if(keyframes[i]->time >= millis) {
-            ofxTLNote* note  = (ofxTLNote*)keyframes[i];
-            return note->pitch;
-            //ofxTLNote* prevKey  = (ofxTLNote*)keyframes[i-1];
-            //interpolate
-//            float alpha = ofMap(sampleTime, prevKey->time, nextKey->time, 0, 1.0);
-//            return prevKey->pitch.getLerped(nextKey->pitch, alpha);
-        }
-    }
-    */
+    lastTimelinePoint = thisTimelinePoint;
     return 0;
 }
 
@@ -253,10 +231,8 @@ string ofxTLNotes::getTrackType() {
 }
 
 void ofxTLNotes::setOctavesNum(int oct) {
-    
     int min = 0;
     int max = 12 * oct;
-    
     setRange(ofRange(min, max));
 }
 
@@ -279,18 +255,12 @@ void ofxTLNotes::setRange(ofRange range){
     }
     
     quantizeAllNotesByPitch();
-    
 }
 
 void ofxTLNotes::didEnterText(){
     
     string s = textField.text;
     string delimiter = "-";
-    
-//    string token = s.substr(0, s.find(delimiter));
-//
-//    cout<<"token "<<token<<endl;
-//    cout<<"string "<<s<<endl;
 
     int min;
     int max;
@@ -304,7 +274,6 @@ void ofxTLNotes::didEnterText(){
         v.push_back(token);
         s.erase(0, pos + delimiter.length());
     }
-    //std::cout<< "final: " << s << std::endl;
     v.push_back(s);
     
     min = std::stoi(v[0]);
@@ -340,13 +309,6 @@ bool ofxTLNotes::mousePressed(ofMouseEventArgs& args, long millis){
     } else {
         return ofxTLKeyframes::mousePressed(args, millis);
     }
-    
-    
-    //if we get all the way here we didn't click on a text field and we aren't
-    //currently entering text so proceed as normal
-    
-    
-    
 }
 
 void ofxTLNotes::mouseMoved(ofMouseEventArgs& args, long millis){
@@ -395,8 +357,6 @@ void ofxTLNotes::quantizeNoteByPitch(ofxTLNote* note){
         }
     }
     
-    
-    
 }
 
 //keys pressed events, and nuding from arrow keys with normalized nudge amount 0 - 1.0
@@ -444,11 +404,41 @@ void ofxTLNotes::storeKeyframe(ofxTLKeyframe* key, ofxXmlSettings& xmlStore){
     ofxTLNote* note = (ofxTLNote*)key;
     xmlStore.addValue("pitch", note->pitch);
     xmlStore.addValue("value", note->value);
-    
 }
 
 ofxTLKeyframe* ofxTLNotes::keyframeAtScreenpoint(ofVec2f p){
     return ofxTLKeyframes::keyframeAtScreenpoint(p);
+}
+
+void ofxTLNotes::createKeyframesFromXML(ofxXmlSettings xmlStore, vector<ofxTLKeyframe*>& keyContainer){
+    ofxTLKeyframes::createKeyframesFromXML(xmlStore, keyContainer);
+    restoreRange(xmlStore);
+}
+
+string ofxTLNotes::getXMLStringForKeyframes(vector<ofxTLKeyframe*>& keys){
+    string keysStr = ofxTLKeyframes::getXMLStringForKeyframes(keys);
+    string rangeStr = storeRange(valueRange);
+    return keysStr + rangeStr;
+}
+
+string ofxTLNotes::storeRange(ofRange range){
+    ofxXmlSettings savedRange;
+    savedRange.addTag("range");
+    savedRange.pushTag("range");
+    savedRange.addValue("min", range.min);
+    savedRange.addValue("max", range.max);
+    savedRange.popTag();
+    string str;
+    savedRange.copyXmlToString(str);
+    return str;
+}
+
+void ofxTLNotes::restoreRange(ofxXmlSettings& xmlStore){
+    xmlStore.pushTag("range");
+    int min = xmlStore.getValue("min", 0);
+    int max = xmlStore.getValue("max", 0);
+    xmlStore.popTag();
+    setRange(ofRange(min,max));
 }
 
 void ofxTLNotes::selectedKeySecondaryClick(ofMouseEventArgs& args){
@@ -465,3 +455,15 @@ void ofxTLNotes::willDeleteKeyframe(ofxTLKeyframe* keyframe){
     //do any cleanup before this keyframe gets hosed
 }
 
+void ofxTLNotes::playbackLooped(ofxTLPlaybackEventArgs& args){
+    lastTimelinePoint = 0;
+}
+
+void ofxTLNotes::playbackStarted(ofxTLPlaybackEventArgs& args){
+    ofxTLTrack::playbackStarted(args);
+    lastTimelinePoint = currentTrackTime();
+}
+
+void ofxTLNotes::prepareForRenderingData(){
+    lastTimelinePoint = 0;
+}

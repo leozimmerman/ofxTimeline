@@ -175,10 +175,10 @@ class ofxTimeline : ofThread {
     
     //timing setup functions
     void setFrameRate(float fps);    
-    void setDurationInFrames(int frames);
-	void setDurationInSeconds(float seconds);
-	void setDurationInMillis(unsigned long long millis);
-    void setDurationInTimecode(string timecode);
+    void setDurationInFrames(int frames, bool verifyTruncatedElements);
+	void setDurationInSeconds(float seconds, bool verifyTruncatedElements);
+	void setDurationInMillis(unsigned long long millis, bool verifyTruncatedElements);
+    void setDurationInTimecode(string timecode, bool verifyTruncatedElements);
 
 	int getDurationInFrames();
 	float getDurationInSeconds();

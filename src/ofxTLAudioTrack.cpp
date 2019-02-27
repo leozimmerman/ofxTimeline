@@ -77,8 +77,10 @@ float ofxTLAudioTrack::getDuration(){
 void ofxTLAudioTrack::update(){
 	if(this == timeline->getTimecontrolTrack()){
 		if(getIsPlaying()){
-			if(player.getPosition() < lastPercent){
-				ofxTLPlaybackEventArgs args = timeline->createPlaybackEvent();
+            float lastPercentErrorMargin = 0.001;
+			if(player.getPosition() < (lastPercent -   lastPercentErrorMargin)){
+                auto pos = player.getPosition();
+ 				ofxTLPlaybackEventArgs args = timeline->createPlaybackEvent();
 				ofNotifyEvent(events().playbackLooped, args);
 			}
 			lastPercent = player.getPosition();			
@@ -89,7 +91,7 @@ void ofxTLAudioTrack::update(){
 			}
 			else if(lastPercent > timeline->getInOutRange().max){
 				if(timeline->getLoopType() == OF_LOOP_NONE){
-					player.setPosition( positionForSecond(timeline->getInTimeInSeconds()));
+					 ( positionForSecond(timeline->getInTimeInSeconds()));
 					stop();
 				}
 				else{
@@ -305,6 +307,7 @@ void ofxTLAudioTrack::play(){
             
             player.setPosition(positionForSecond(timeline->getCurrentTime()));
             //cout << " setting time to  " << positionForSecond(timeline->getCurrentTime()) << " actual " << player.getPosition() << endl;
+            lastPercent = 0;
             
 			ofxTLPlaybackEventArgs args = timeline->createPlaybackEvent();
 			ofNotifyEvent(events().playbackStarted, args);

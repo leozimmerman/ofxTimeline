@@ -549,7 +549,7 @@ vector<ofxTLTrack*>& ofxTLPage::getTracks(){
 
 ofxTLTrack* ofxTLPage::getTrack(string trackName){
 	if(tracks.find(trackName) == tracks.end()){
-		ofLogError("ofxTLPage -- Couldn't find element named " + trackName + " on page " + name);
+		//ofLogError("ofxTLPage -- Couldn't find element named " + trackName + " on page " + name);
 		return NULL;
 	}
 	return tracks[trackName];

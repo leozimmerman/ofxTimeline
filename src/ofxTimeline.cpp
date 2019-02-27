@@ -178,6 +178,7 @@ void ofxTimeline::setup(){
     }
 	setupStandardElements();
 
+    
 }
 ///Same function as setup, but not using "Page One" as default name
 void ofxTimeline::setup(string firstPageName){
@@ -231,7 +232,9 @@ void ofxTimeline::setup(string firstPageName){
         //setName("timeline" + ofToString(timelineNumber++));
          setName("tl");
     }
-    setupStandardElements();
+    
+    ///twk
+    //setupStandardElements();
 }
 
 void ofxTimeline::moveToThread(){
@@ -309,21 +312,22 @@ string ofxTimeline::getWorkingFolder(){
 }
 
 void ofxTimeline::loadTracksFromFolder(string folderPath){
+    setWorkingFolder(folderPath);
     for(int i = 0; i < pages.size(); i++){
         pages[i]->loadTracksFromFolder(folderPath);
     }
-	setWorkingFolder(folderPath);
 }
 
 void ofxTimeline::saveTracksToFolder(string folderPath){
-
 	ofDirectory targetDirectory = ofDirectory(folderPath);
 	if(!targetDirectory.exists()){
 		targetDirectory.create(true);
 	}
     folderPath = ofFilePath::addTrailingSlash(folderPath);
-	for(int i = 0; i < pages.size(); i++){
-        pages[i]->saveTracksToFolder(folderPath);
+    
+    for(auto page : pages){
+        page->saveTrackPositions();
+        page->saveTracksToFolder(folderPath);
     }
 	string filename = folderPath + zoomer->getXMLFileName();
 	zoomer->setXMLFileName(filename);
@@ -333,7 +337,8 @@ void ofxTimeline::saveTracksToFolder(string folderPath){
 	inoutTrack->setXMLFileName(filename);
 	inoutTrack->save();
 
-	setWorkingFolder(folderPath);
+    setWorkingFolder(folderPath);
+	
 }
 
 
@@ -915,9 +920,6 @@ void ofxTimeline::reset(){ //gets rid of everything
     if(!isSetup){
         return;
     }
-
-
-
 	if(isOnThread){
 		waitForThread(true);
 	}
@@ -952,11 +954,11 @@ void ofxTimeline::reset(){ //gets rid of everything
 }
 
 
-void ofxTimeline::setDurationInFrames(int frames){
-    setDurationInSeconds(timecode.secondsForFrame(frames));
+void ofxTimeline::setDurationInFrames(int frames, bool verifyTruncatedElements){
+    setDurationInSeconds(timecode.secondsForFrame(frames), verifyTruncatedElements);
 }
 
-void ofxTimeline::setDurationInSeconds(float seconds){
+void ofxTimeline::setDurationInSeconds(float seconds, bool verifyTruncatedElements){
 
 	bool updateInTime = inoutRange.min > 0.;
 	bool updateOutTime = inoutRange.max < 1.;
@@ -968,10 +970,13 @@ void ofxTimeline::setDurationInSeconds(float seconds){
     	ofLogError("ofxTimeline::setDurationInSeconds") << " Duration must set a positive number";
         return;
     }
-	//verify no elements are being truncated
-	durationInSeconds = MAX(seconds, getLatestTime()/1000.0);
-
-
+    if (verifyTruncatedElements){
+        //verify no elements are being truncated
+        durationInSeconds = MAX(seconds, getLatestTime()/1000.0);
+    } else {
+        durationInSeconds = seconds;
+    }
+	
 	if(updateInTime){
 		setInPointAtSeconds(inTimeSeconds);
 	}
@@ -982,14 +987,14 @@ void ofxTimeline::setDurationInSeconds(float seconds){
 	zoomer->setViewRange(zoomer->getSelectedRange());
 }
 
-void ofxTimeline::setDurationInMillis(unsigned long long millis){
-    setDurationInSeconds(millis/1000.);
+void ofxTimeline::setDurationInMillis(unsigned long long millis, bool verifyTruncatedElements){
+    setDurationInSeconds(millis/1000., verifyTruncatedElements);
 }
 
-void ofxTimeline::setDurationInTimecode(string timecodeString){
+void ofxTimeline::setDurationInTimecode(string timecodeString, bool verifyTruncatedElements){
     float newDuration = timecode.secondsForTimecode(timecodeString);
     if(newDuration > 0){
-	    setDurationInSeconds(newDuration);
+	    setDurationInSeconds(newDuration, verifyTruncatedElements);
     }
     else{
         ofLogError() << "ofxTimeline::setDurationInTimecode -- " << timecodeString << " is invalid, please use the format HH:MM:SS:MLS";
@@ -1095,7 +1100,7 @@ void ofxTimeline::setHeight(float height){
 		updatePagePositions();
         ofEventArgs args;
         ofNotifyEvent(events().viewWasResized, args);
-		ofLogVerbose() << "ofxTimeline setHeight: desired height was " << height << " resulting height " << totalDrawRect.height << endl;
+		//ofLogVerbose() << "ofxTimeline setHeight: desired height was " << height << " resulting height " << totalDrawRect.height << endl;
 	}
 }
 
@@ -1974,7 +1979,6 @@ bool ofxTimeline::isBang(string trackName){
         ofLogError("ofxTimeline -- Couldn't find bang track " + trackName);
         return false;
     }
-
     ofxTLBangs* bangs = (ofxTLBangs*)trackNameToPage[trackName]->getTrack(trackName);
     return bangs->hasBangOnCurrentTrackTime();
 }
@@ -1984,7 +1988,6 @@ bool ofxTimeline::isSwitchOn(string trackName){
 		ofLogError("ofxTimeline -- Couldn't find switcher track " + trackName);
 		return false;
 	}
-
 	ofxTLSwitches* switches = (ofxTLSwitches*)trackNameToPage[trackName]->getTrack(trackName);
 	return switches->isOn();
 //    return isSwitchOn(trackName, currentTime);

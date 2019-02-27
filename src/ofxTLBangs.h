@@ -49,15 +49,16 @@ class ofxTLBangs : public ofxTLKeyframes {
 	virtual void playbackLooped(ofxTLPlaybackEventArgs& args);
     
     virtual string getTrackType();
-    virtual bool hasBangOnCurrentTrackTime();
+    bool hasBangOnCurrentTrackTime();
+    void prepareForRenderingData();
     
  protected:
 
     virtual ofxTLKeyframe* keyframeAtScreenpoint(ofVec2f p);
-//    bool isPlayingBack;
 	virtual void update();
 	
-    long lastTimelinePoint;
+    long lastTimelinePointUpdate;
+    long lastTimelinePointHasBang;
 	float lastBangTime; //just for display
 	
     virtual void bangFired(ofxTLKeyframe* key);

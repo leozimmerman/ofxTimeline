@@ -56,23 +56,33 @@ public:
     ofxTLNotes();
     virtual ~ofxTLNotes();
     
-    virtual void draw();
+    virtual void draw() override;
     
-    virtual bool mousePressed(ofMouseEventArgs& args, long millis);
-    virtual void mouseMoved(ofMouseEventArgs& args, long millis);
-    virtual void mouseDragged(ofMouseEventArgs& args, long millis);
-    virtual void mouseReleased(ofMouseEventArgs& args, long millis);
+    virtual bool mousePressed(ofMouseEventArgs& args, long millis) override;
+    virtual void mouseMoved(ofMouseEventArgs& args, long millis) override;
+    virtual void mouseDragged(ofMouseEventArgs& args, long millis) override;
+    virtual void mouseReleased(ofMouseEventArgs& args, long millis) override;
+    
+    virtual void playbackStarted(ofxTLPlaybackEventArgs& args) override;
+    virtual void playbackLooped(ofxTLPlaybackEventArgs& args) override;
 
-    virtual void keyPressed(ofKeyEventArgs& args);
+    virtual void keyPressed(ofKeyEventArgs& args) override;
     
     void setRange(ofRange range);
     void setOctavesNum(int oct);
+    
+    string storeRange(ofRange range);
+    void restoreRange(
+                    ofxXmlSettings& xmlStore);
+    
     void didEnterText();
     
     int getNote();
     int getNoteAtMillis(long millis);
     int getNoteAtPercent(float percent);
     
+    void createKeyframesFromXML(ofxXmlSettings xmlStore, vector<ofxTLKeyframe*>& keyContainer) override;
+    string getXMLStringForKeyframes(vector<ofxTLKeyframe*>& keys) override;
     
     ofxTextInputField textField;
     ofRectangle display;
@@ -81,13 +91,14 @@ public:
     //valueRange is 0 at the bottom of the track, and 1 at the top
     //if you have anything other than small dots keyframes you'll want to override
     //the default behavior
-    virtual void regionSelected(ofLongRange timeRange, ofRange valueRange);
+    virtual void regionSelected(ofLongRange timeRange, ofRange valueRange) override;
 
-    virtual string getTrackType();
+    virtual string getTrackType() override;
 
     // Note-Specific
     void drawBackgroundGrid();
     
+    void prepareForRenderingData();
     
 protected:
     vector<GridRow> gridRows;
@@ -114,4 +125,6 @@ protected:
     
     //you can responde to a keyframe about to be killed with this function right before the parent class deletes it
     virtual void willDeleteKeyframe(ofxTLKeyframe* keyframe);
+    
+    long lastTimelinePoint;
 };
