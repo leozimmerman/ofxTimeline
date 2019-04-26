@@ -447,6 +447,7 @@ bool ofOpenALSoundPlayer_TimelineAdditions::load(const std::filesystem::path& _f
 		buffers.resize(channels);
 	}
 	alGenBuffers(buffers.size(), &buffers[0]);
+    err = alGetError();//Fixes open file bug...(?)
 	if(channels==1){
 		sources.resize(1);
 		alGenSources(1, &sources[0]);

@@ -61,6 +61,13 @@ ofxTLKeyframe* ofxTLCurves::newKeyframe(){
 	return k;
 }
 
+void ofxTLCurves::draw(){
+    ofPushStyle();
+    ofSetLineWidth(2);
+    ofxTLKeyframes::draw();
+    ofPopStyle();
+}
+
 void ofxTLCurves::drawModalContent(){
 
 	//****** DRAW EASING CONTROLS

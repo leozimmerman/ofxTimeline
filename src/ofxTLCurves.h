@@ -86,7 +86,7 @@ class ofxTLCurves : public ofxTLKeyframes {
   public:
     ofxTLCurves();
 
-//    virtual void draw();
+    virtual void draw();
     virtual void drawModalContent();
 
 	//For selecting keyframe type only,
